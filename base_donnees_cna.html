@@ -1,0 +1,1061 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Base de Données — Chambre Nationale d'Agriculture</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,500&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --ink: #0F1A14;
+  --forest: #1E3D2B;
+  --moss: #2E6644;
+  --sage: #5A9A6F;
+  --mist: #C8DDD0;
+  --parchment: #F5F1E8;
+  --gold: #C49A2A;
+  --gold-pale: #F0DFA0;
+  --surface: #FFFFFF;
+  --border: #DDD8CB;
+  --text: #1A2820;
+  --muted: #6B7D72;
+  --red: #C0392B;
+  --orange: #D35400;
+  --blue: #2471A3;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Outfit', sans-serif; background: var(--parchment); color: var(--text); min-height: 100vh; }
+
+/* ── SIDEBAR ── */
+.layout { display: flex; min-height: 100vh; }
+.sidebar {
+  width: 240px; flex-shrink: 0;
+  background: var(--forest);
+  display: flex; flex-direction: column;
+  position: sticky; top: 0; height: 100vh;
+}
+.sidebar-logo {
+  padding: 24px 20px 20px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+.sidebar-logo .title {
+  font-family: 'Playfair Display', serif;
+  font-size: 15px; color: #fff; line-height: 1.3;
+}
+.sidebar-logo .sub {
+  font-size: 10px; color: rgba(255,255,255,0.4);
+  text-transform: uppercase; letter-spacing: 0.12em; margin-top: 4px;
+}
+.sidebar-logo .badge {
+  display: inline-block; background: rgba(196,154,42,0.25);
+  border: 1px solid var(--gold); color: var(--gold-pale);
+  font-size: 9px; padding: 2px 8px; border-radius: 20px;
+  text-transform: uppercase; letter-spacing: 0.1em; margin-top: 8px;
+}
+.nav { padding: 16px 10px; flex: 1; }
+.nav-label {
+  font-size: 9px; text-transform: uppercase; letter-spacing: 0.18em;
+  color: rgba(255,255,255,0.3); padding: 0 10px; margin: 16px 0 6px;
+}
+.nav-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 12px; border-radius: 7px; cursor: pointer;
+  color: rgba(255,255,255,0.6); font-size: 13px; font-weight: 400;
+  transition: all 0.18s; margin-bottom: 2px; position: relative;
+}
+.nav-item:hover { background: rgba(255,255,255,0.07); color: #fff; }
+.nav-item.active { background: rgba(196,154,42,0.18); color: #fff; font-weight: 500; }
+.nav-item.active::before {
+  content: ''; position: absolute; left: 0; top: 20%; bottom: 20%;
+  width: 3px; background: var(--gold); border-radius: 0 3px 3px 0;
+}
+.nav-count {
+  margin-left: auto; background: rgba(255,255,255,0.12);
+  color: rgba(255,255,255,0.5); font-size: 10px;
+  padding: 1px 7px; border-radius: 10px;
+}
+.nav-item.active .nav-count { background: rgba(196,154,42,0.3); color: var(--gold-pale); }
+.sidebar-footer {
+  padding: 16px 20px;
+  border-top: 1px solid rgba(255,255,255,0.07);
+  font-size: 11px; color: rgba(255,255,255,0.25);
+}
+
+/* ── MAIN ── */
+.main { flex: 1; overflow-y: auto; }
+.topbar {
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  padding: 16px 28px; display: flex; align-items: center;
+  gap: 12px; position: sticky; top: 0; z-index: 10;
+}
+.page-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 22px; color: var(--forest); flex: 1;
+}
+.search-box {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--parchment); border: 1px solid var(--border);
+  border-radius: 8px; padding: 8px 14px; width: 240px;
+}
+.search-box input {
+  border: none; background: transparent; outline: none;
+  font-family: 'Outfit', sans-serif; font-size: 13px;
+  color: var(--text); width: 100%;
+}
+.search-box input::placeholder { color: var(--muted); }
+.btn-add {
+  background: var(--moss); color: #fff;
+  border: none; padding: 9px 18px; border-radius: 7px;
+  font-family: 'Outfit', sans-serif; font-size: 13px; font-weight: 500;
+  cursor: pointer; display: flex; align-items: center; gap: 6px;
+  transition: background 0.2s;
+}
+.btn-add:hover { background: var(--forest); }
+
+.content { padding: 28px; }
+
+/* ── STATS ── */
+.stats-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; margin-bottom: 28px; }
+.stat-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 10px; padding: 18px 20px;
+  display: flex; align-items: center; gap: 14px;
+  box-shadow: 0 1px 6px rgba(30,61,43,0.05);
+}
+.stat-icon {
+  width: 42px; height: 42px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; flex-shrink: 0;
+}
+.stat-icon.green { background: rgba(90,154,111,0.12); }
+.stat-icon.gold { background: rgba(196,154,42,0.12); }
+.stat-icon.blue { background: rgba(36,113,163,0.1); }
+.stat-icon.red { background: rgba(192,57,43,0.1); }
+.stat-num { font-family: 'Playfair Display', serif; font-size: 26px; color: var(--forest); line-height: 1; }
+.stat-lbl { font-size: 11px; color: var(--muted); margin-top: 2px; text-transform: uppercase; letter-spacing: 0.08em; }
+
+/* ── CARDS GRID ── */
+.cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+
+/* ── PARTNER CARD ── */
+.partner-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 10px; padding: 20px;
+  box-shadow: 0 1px 6px rgba(30,61,43,0.04);
+  transition: box-shadow 0.2s, transform 0.2s; cursor: pointer;
+}
+.partner-card:hover { box-shadow: 0 4px 18px rgba(30,61,43,0.1); transform: translateY(-2px); }
+.card-top { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 12px; }
+.card-avatar {
+  width: 44px; height: 44px; border-radius: 10px;
+  background: linear-gradient(135deg, var(--moss), var(--sage));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; flex-shrink: 0; color: white;
+  font-family: 'Playfair Display', serif; font-weight: 700;
+}
+.card-name { font-weight: 600; font-size: 14px; color: var(--forest); line-height: 1.3; }
+.card-org { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.badge {
+  display: inline-block; font-size: 10px; font-weight: 500;
+  padding: 2px 9px; border-radius: 20px; text-transform: uppercase;
+  letter-spacing: 0.08em; margin-left: auto; flex-shrink: 0;
+}
+.badge.ministere { background: rgba(36,113,163,0.1); color: var(--blue); }
+.badge.international { background: rgba(196,154,42,0.12); color: #8B6914; }
+.badge.regional { background: rgba(90,154,111,0.12); color: var(--moss); }
+.badge.entreprise { background: rgba(211,84,0,0.1); color: var(--orange); }
+.badge.chambre { background: rgba(0,128,128,0.12); color: #006666; }
+.card-detail { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 5px; margin-bottom: 4px; }
+.card-detail span { color: var(--text); }
+.card-actions { display: flex; gap: 6px; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border); }
+.btn-sm {
+  flex: 1; padding: 6px; border-radius: 6px; font-size: 11px; font-weight: 500;
+  cursor: pointer; border: 1px solid var(--border);
+  background: transparent; color: var(--muted); transition: all 0.15s; text-align: center;
+}
+.btn-sm:hover { background: var(--parchment); color: var(--forest); border-color: var(--mist); }
+.btn-sm.danger:hover { background: rgba(192,57,43,0.07); color: var(--red); border-color: rgba(192,57,43,0.2); }
+
+/* ── DOSSIER CARD ── */
+.dossier-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 10px; padding: 20px;
+  box-shadow: 0 1px 6px rgba(30,61,43,0.04);
+  transition: box-shadow 0.2s, transform 0.2s; cursor: pointer;
+}
+.dossier-card:hover { box-shadow: 0 4px 18px rgba(30,61,43,0.1); transform: translateY(-2px); }
+.status-dot {
+  width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 5px;
+}
+.status-dot.en-cours { background: var(--orange); }
+.status-dot.urgent { background: var(--red); }
+.status-dot.suivi { background: var(--blue); }
+.status-dot.clos { background: var(--muted); }
+.progress-bar { height: 4px; background: var(--mist); border-radius: 2px; margin: 12px 0 6px; }
+.progress-fill { height: 100%; border-radius: 2px; background: linear-gradient(90deg, var(--moss), var(--sage)); transition: width 0.4s; }
+
+/* ── REUNION CARD ── */
+.reunion-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 10px; overflow: hidden;
+  box-shadow: 0 1px 6px rgba(30,61,43,0.04);
+}
+.reunion-date-bar {
+  background: var(--forest); padding: 10px 18px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.reunion-date { font-family: 'Playfair Display', serif; font-size: 14px; color: #fff; }
+.reunion-body { padding: 16px 18px; }
+.reunion-title { font-weight: 600; font-size: 14px; color: var(--forest); margin-bottom: 8px; }
+.reunion-excerpt { font-size: 12px; color: var(--muted); line-height: 1.6; }
+.decision-pill {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: rgba(90,154,111,0.1); border: 1px solid rgba(90,154,111,0.3);
+  color: var(--moss); font-size: 11px; padding: 3px 10px; border-radius: 20px;
+  margin: 4px 3px 0 0;
+}
+
+/* ── MODAL ── */
+.modal-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(15,26,20,0.55); backdrop-filter: blur(3px);
+  z-index: 100; align-items: center; justify-content: center;
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: var(--surface); border-radius: 14px; width: 560px;
+  max-width: 95vw; max-height: 90vh; overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+  animation: popIn 0.25s ease;
+}
+@keyframes popIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.modal-header {
+  background: var(--forest); padding: 20px 24px;
+  display: flex; align-items: center; justify-content: space-between;
+  border-radius: 14px 14px 0 0;
+}
+.modal-title { font-family: 'Playfair Display', serif; font-size: 18px; color: #fff; }
+.modal-close {
+  background: rgba(255,255,255,0.12); border: none;
+  color: #fff; width: 32px; height: 32px; border-radius: 50%;
+  font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: background 0.2s;
+}
+.modal-close:hover { background: rgba(255,255,255,0.22); }
+.modal-body { padding: 24px; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.field { display: flex; flex-direction: column; gap: 5px; margin-bottom: 14px; }
+.field.full { grid-column: 1/-1; }
+.field label { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); }
+.field input, .field select, .field textarea {
+  font-family: 'Outfit', sans-serif; font-size: 14px;
+  padding: 10px 13px; border: 1px solid var(--border); border-radius: 7px;
+  background: var(--parchment); color: var(--text); outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s; resize: vertical;
+}
+.field input:focus, .field select:focus, .field textarea:focus {
+  border-color: var(--sage); box-shadow: 0 0 0 3px rgba(90,154,111,0.12);
+}
+.field textarea { min-height: 80px; }
+.modal-footer {
+  padding: 16px 24px; border-top: 1px solid var(--border);
+  display: flex; justify-content: flex-end; gap: 10px;
+}
+.btn-cancel {
+  padding: 9px 20px; border-radius: 7px; border: 1px solid var(--border);
+  background: transparent; font-family: 'Outfit', sans-serif; font-size: 13px;
+  color: var(--muted); cursor: pointer; transition: all 0.15s;
+}
+.btn-cancel:hover { background: var(--parchment); }
+.btn-save {
+  padding: 9px 24px; border-radius: 7px; border: none;
+  background: var(--moss); color: #fff;
+  font-family: 'Outfit', sans-serif; font-size: 13px; font-weight: 500;
+  cursor: pointer; transition: background 0.2s;
+}
+.btn-save:hover { background: var(--forest); }
+
+/* ── EMPTY ── */
+.empty-state {
+  text-align: center; padding: 60px 20px;
+  color: var(--muted); grid-column: 1/-1;
+}
+.empty-state .icon { font-size: 40px; margin-bottom: 12px; opacity: 0.4; }
+.empty-state p { font-size: 14px; }
+
+/* ── TOAST ── */
+.toast {
+  position: fixed; bottom: 24px; right: 24px;
+  background: var(--forest); color: #fff;
+  padding: 12px 20px; border-radius: 8px; font-size: 13px;
+  transform: translateY(60px); opacity: 0;
+  transition: all 0.28s; z-index: 999;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+  border-left: 3px solid var(--gold);
+}
+.toast.show { transform: none; opacity: 1; }
+
+@media(max-width:700px){
+  .sidebar{ display: none; }
+  .stats-row{ grid-template-columns: 1fr 1fr; }
+  .topbar{ padding: 12px 16px; }
+  .content{ padding: 16px; }
+  .search-box{ display: none; }
+}
+</style>
+</head>
+<body>
+
+<div class="layout">
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div style="font-size:28px;margin-bottom:8px">🌿</div>
+    <div class="title">Chambre Nationale<br>d'Agriculture</div>
+    <div class="sub">Base de données</div>
+    <div class="badge">Usage Interne</div>
+  </div>
+  <nav class="nav">
+    <div class="nav-label">Navigation</div>
+    <div class="nav-item active" onclick="showTab('partenaires')">
+      <span>🤝</span> Partenaires <span class="nav-count" id="cnt-partenaires">0</span>
+    </div>
+    <div class="nav-item" onclick="showTab('dossiers')">
+      <span>📁</span> Dossiers <span class="nav-count" id="cnt-dossiers">0</span>
+    </div>
+    <div class="nav-item" onclick="showTab('reunions')">
+      <span>📝</span> Comptes-rendus <span class="nav-count" id="cnt-reunions">0</span>
+    </div>
+  </nav>
+  <div class="sidebar-footer">v1.0 — Données locales</div>
+</aside>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="topbar">
+    <div class="page-title" id="pageTitle">Partenaires Institutionnels</div>
+    <div class="search-box">
+      <span style="color:var(--muted);font-size:14px">🔍</span>
+      <input type="text" id="searchInput" placeholder="Rechercher…" oninput="doSearch()"/>
+    </div>
+    <button class="btn-add" id="importBtn" onclick="openImportModal()" style="background:var(--gold);color:var(--ink)">📥 Importer liste</button>
+    <button class="btn-add" id="addBtn" onclick="openModal()">+ Ajouter</button>
+  </div>
+
+  <div class="content">
+    <!-- STATS -->
+    <div class="stats-row" id="statsRow"></div>
+
+    <!-- CARDS -->
+    <div class="cards-grid" id="cardsGrid"></div>
+  </div>
+</div>
+
+</div>
+
+<!-- ── MODALS ── -->
+
+<!-- Partner Modal -->
+<div class="modal-overlay" id="modalPartner">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="partnerModalTitle">Nouveau Partenaire</div>
+      <button class="modal-close" onclick="closeModal('modalPartner')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="pEditId"/>
+      <div class="form-row">
+        <div class="field"><label>Nom & Prénom *</label><input id="pNom" placeholder="Ex : Ahmed Benali"/></div>
+        <div class="field"><label>Poste / Titre</label><input id="pPoste" placeholder="Ex : Directeur Général"/></div>
+        <div class="field"><label>Organisation *</label><input id="pOrg" placeholder="Ex : Ministère de l'Agriculture"/></div>
+        <div class="field"><label>Catégorie</label>
+          <select id="pCat">
+            <option value="ministere">Ministère</option>
+            <option value="international">Organisation Internationale</option>
+            <option value="regional">Partenaire Régional</option>
+            <option value="entreprise">Entreprise / Privé</option>
+          </select>
+        </div>
+        <div class="field"><label>Téléphone</label><input id="pTel" placeholder="+213 …"/></div>
+        <div class="field"><label>Email</label><input id="pEmail" placeholder="email@…"/></div>
+        <div class="field full"><label>Notes importantes</label><textarea id="pNotes" placeholder="Contexte, historique des échanges, points d'attention…"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal('modalPartner')">Annuler</button>
+      <button class="btn-save" onclick="savePartner()">💾 Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Dossier Modal -->
+<div class="modal-overlay" id="modalDossier">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="dossierModalTitle">Nouveau Dossier</div>
+      <button class="modal-close" onclick="closeModal('modalDossier')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="dEditId"/>
+      <div class="form-row">
+        <div class="field full"><label>Titre du Dossier *</label><input id="dTitre" placeholder="Ex : Subventions intrants agricoles 2025"/></div>
+        <div class="field"><label>Statut</label>
+          <select id="dStatut">
+            <option value="en-cours">En cours</option>
+            <option value="urgent">Urgent</option>
+            <option value="suivi">En suivi</option>
+            <option value="clos">Clos</option>
+          </select>
+        </div>
+        <div class="field"><label>Avancement (%)</label><input id="dProgress" type="number" min="0" max="100" placeholder="0"/></div>
+        <div class="field"><label>Responsable</label><input id="dResp" placeholder="Ex : Direction Technique"/></div>
+        <div class="field"><label>Échéance</label><input id="dEcheance" type="date"/></div>
+        <div class="field full"><label>Description & Contexte</label><textarea id="dDesc" placeholder="Résumé du dossier, enjeux, parties prenantes…"></textarea></div>
+        <div class="field full"><label>Prochaine action requise</label><input id="dAction" placeholder="Ex : Valider le rapport d'étape avant le 15"/></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal('modalDossier')">Annuler</button>
+      <button class="btn-save" onclick="saveDossier()">💾 Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Reunion Modal -->
+<div class="modal-overlay" id="modalReunion">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="reunionModalTitle">Nouveau Compte-rendu</div>
+      <button class="modal-close" onclick="closeModal('modalReunion')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="rEditId"/>
+      <div class="form-row">
+        <div class="field full"><label>Objet / Titre *</label><input id="rTitre" placeholder="Ex : Réunion Comité Technique Irrigation"/></div>
+        <div class="field"><label>Date</label><input id="rDate" type="date"/></div>
+        <div class="field"><label>Lieu / Format</label><input id="rLieu" placeholder="Ex : Siège CNA / Visioconférence"/></div>
+        <div class="field full"><label>Participants</label><input id="rParticipants" placeholder="Ex : Président, Dir. Technique, Représentant Ministère…"/></div>
+        <div class="field full"><label>Résumé & Points discutés</label><textarea id="rResume" placeholder="Principaux points abordés…"></textarea></div>
+        <div class="field full"><label>Décisions prises (une par ligne)</label><textarea id="rDecisions" placeholder="Ex : Approuver le rapport d'étape&#10;Planifier mission terrain wilaya Biskra"></textarea></div>
+        <div class="field full"><label>Actions à suivre</label><textarea id="rActions" placeholder="Qui fait quoi et avant quelle date…"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal('modalReunion')">Annuler</button>
+      <button class="btn-save" onclick="saveReunion()">💾 Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Import Modal -->
+<div class="modal-overlay" id="modalImport">
+  <div class="modal" style="width:620px">
+    <div class="modal-header">
+      <div class="modal-title">&#128229; Importer une liste d'experts</div>
+      <button class="modal-close" onclick="closeModal('modalImport')">&#10005;</button>
+    </div>
+    <div class="modal-body">
+      <div style="background:rgba(196,154,42,0.08);border:1px solid rgba(196,154,42,0.3);border-radius:8px;padding:12px 14px;margin-bottom:16px;font-size:12px;color:var(--ink);line-height:1.7">
+        <strong>Format accepte - colonnes separees par tabulation :</strong><br>
+        <code style="font-size:11px;background:rgba(0,0,0,0.04);padding:2px 6px;border-radius:4px">Nom et Prenom [TAB] Poste/Fonction [TAB] Organisation [TAB] Telephone [TAB] Email [TAB] Notes/Wilaya</code><br>
+        <em style="color:var(--muted)">Seul le Nom est obligatoire. Copiez-collez directement depuis Excel ou Word.</em>
+      </div>
+      <div class="field">
+        <label>Coller les donnees ici</label>
+        <textarea id="importTextarea" style="min-height:140px;font-family:monospace;font-size:12px" placeholder="Ex: Bouaricha Salim&#9;Professeur&#9;Universite Annaba&#9;0793080834&#9;&#9;Wilaya Annaba"></textarea>
+      </div>
+      <button class="btn-save" onclick="parseImportData()" style="margin-bottom:12px;width:100%">&#128269; Analyser les donnees</button>
+      <div id="importCount" style="font-size:12px;font-weight:600;color:var(--moss);margin-bottom:8px"></div>
+      <div id="importPreview" style="max-height:200px;overflow-y:auto"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal('modalImport')">Annuler</button>
+      <button class="btn-save" onclick="confirmImport()">&#10003; Confirmer l'import</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── DATA ──────────────────────────────────────────────────
+const EXPERTS_MADR = [
+  { id:'exp001', nom:"Bouaricha Salim / بوعريشة سليم", poste:"Agriculteur / Professeur de physique", org:"Université d\'Annaba — Conseil Scientifique MADR", cat:'regional', tel:'0793080834', email:'', notes:"Agriculteur, ancien président de la chambre d\'agriculture de la wilaya d\'Annaba, professeur de physique à l\'université d\'Annaba. Wilaya: Annaba" },
+  { id:'exp002', nom:"Bouhafs Mohammed Lakhar / بوحفص محمد لخضر", poste:"Expert en agriculture saharienne", org:"Conseil Scientifique MADR", cat:'regional', tel:'0661383040', email:'', notes:"Expert en agriculture saharienne et en accompagnement des grands projets à El Menia. Wilaya: El Menia" },
+  { id:'exp003', nom:"Braham El Kafal / براهام الكفل", poste:"Ingénieur agro-économiste / Expert serres", org:"Conseil Scientifique MADR", cat:'regional', tel:'0555177851', email:'', notes:"Expert en modernisation des systèmes de production agricole (serres multichapelles). Wilaya: Tipaza" },
+  { id:'exp004', nom:"Ali Daoudi / علي داودي", poste:"Professeur agro-économiste", org:"Université — Conseil Scientifique MADR", cat:'regional', tel:'0772382500', email:'', notes:"Spécialiste des politiques de développement agricole et de la durabilité des écosystèmes. Wilaya: Alger" },
+  { id:'exp005', nom:"Dali Mehdi / دالي مهدي", poste:"Docteur vétérinaire / Président chambre agriculture", org:"Chambre Agriculture Constantine — Conseil Scientifique MADR", cat:'regional', tel:'0550952252 / 0778502544', email:'', notes:"Président de la chambre d\'agriculture de la wilaya de Constantine. Wilaya: Constantine" },
+  { id:'exp006', nom:"Azzion Ammar / عزيون عمار", poste:"Directeur Général — CRBT", org:"Centre de Recherche en Biotechnologie (CRBT) — Conseil Scientifique MADR", cat:'ministere', tel:'0671670328', email:'', notes:"Directeur général du Centre de recherche en biotechnologie (CRBT). Wilaya: Constantine" },
+  { id:'exp007', nom:"Rabah Oulad El Hadar / رابح ولاد الهدار", poste:"Ingénieur chercheur — Agriculture saharienne", org:"Ghardaïa — Conseil Scientifique MADR", cat:'regional', tel:'0661470247', email:'', notes:"Spécialiste du développement de l\'agriculture saharienne et de la modernisation des systèmes de production agricole. Wilaya: Ghardaïa" },
+  { id:'exp008', nom:"Oudafal Abdelhakim / اودافال عبد الحكيم", poste:"Docteur vétérinaire / Expert élevage", org:"Conseil Scientifique MADR", cat:'regional', tel:'0662861062', email:'', notes:"Expert en investissement dans l\'élevage. Wilaya: Tizi Ouzou" },
+  { id:'exp009', nom:"Lyes Louali / لياس لوالي", poste:"Consultant international — LORNA International Ltd", org:"LORNA International Ltd (Brésil / USA)", cat:'international', tel:'+213558123514 / +5548998113013', email:'', notes:"International business consultant, fondateur et directeur général de LORNA International Ltd (Brésil et USA)." },
+  { id:'exp010', nom:"Pr. Khenenou Tarek / الأستاذ خنينو طارق", poste:"Président Conseil scientifique — Institut agro-vétérinaire", org:"Université de Souk Ahras — Conseil Scientifique MADR", cat:'regional', tel:'0673714622', email:'', notes:"Président du Conseil scientifique de l\'Institut agro-vétérinaire, Université de Souk Ahras. Wilaya: Souk Ahras" },
+  { id:'exp011', nom:"Ben Brahim Fouzi / بن ابراهيم فوزي", poste:"Professeur — Agroécologie", org:"Université de Ouargla — Conseil Scientifique MADR", cat:'regional', tel:'0661459777', email:'', notes:"Spécialiste en agroécologie, préservation des sols et agriculture de conservation. Wilaya: Ouargla" },
+  { id:'exp012', nom:"Mesbah Youcef / مصباح يوسف", poste:"Ingénieur agronome — DSA El Ménéa", org:"DSA Wilaya El Menia — Conseil Scientifique MADR", cat:'ministere', tel:'0666218305', email:'', notes:"Ingénieur agronome à la DSA de W. Ménéa, expert en mise en valeur des terres dans le sud algérien. Wilaya: El Menia" },
+  { id:'exp013', nom:"Dr. Fettata Said / الدكتور فطاطة سعيد", poste:"Vétérinaire expert — Santé animale / Reproduction", org:"Conseil Scientifique MADR", cat:'regional', tel:'0662308472', email:'', notes:"Expert en santé animale, alimentation et reproduction (doyen de l\'insémination artificielle en Algérie). Wilaya: Ghardaïa" },
+  { id:'exp014', nom:"Prof. Benoun Ammar / بروفيسور بنون عمار", poste:"Professeur — Université de Batna", org:"Université de Batna — Conseil Scientifique MADR", cat:'regional', tel:'0661352112', email:'', notes:"Professeur à l\'Université de Batna. Wilaya: Batna" },
+  { id:'exp015', nom:"Najadi Ammar / نجادي عمار", poste:"Fondateur / DG — OPTIFEED / EMBRAPA Algérie", org:"OPTIFEED — Conseil Scientifique MADR", cat:'entreprise', tel:'0668998991 / 0557615369', email:'', notes:"Fondateur et directeur général du projet national OPTIFEED, représentant officiel de l\'entreprise EMBRAPA en Algérie (production fourragère). Wilaya: Bouira" },
+  { id:'exp016', nom:"Bouaddis Miloud / بوعديس ميلود", poste:"Ingénieur agronome / Expert élevage bovin", org:"Conseil Interprofessionnel Viandes Rouges — Conseil Scientifique MADR", cat:'regional', tel:'0550598074', email:'', notes:"Ingénieur agronome, expert en élevage bovin, Président du Conseil interprofessionnel des Viandes rouges. Wilaya: Alger" },
+  { id:'exp017', nom:"Ghassoul Abd El Kader / عبد القادر غاسول", poste:"Expert plantes médicinales et aromatiques", org:"France / Conseil Scientifique MADR", cat:'international', tel:'0559835986', email:'', notes:"Expert dans les plantes médicinales et aromatiques et le développement des niches agricoles en France. Wilaya: Sidi Bel Abbès" },
+  { id:'exp018', nom:"Belarouci Mohammed El Hafed / بلعروسي محمد الحافظ", poste:"Docteur — Développement agricole", org:"Université de Ouargla — Conseil Scientifique MADR", cat:'regional', tel:'0661383348', email:'', notes:"Docteur universitaire spécialisé en développement agricole à l\'Université de Ouargla. Wilaya: Ouargla" },
+  { id:'exp019', nom:"Boumada Abdelbassat / بومادة عبد الباسط", poste:"Professeur — Sciences agronomiques", org:"Université Kasdi Merbah Ouargla — Conseil Scientifique MADR", cat:'regional', tel:'0663343418', email:'', notes:"Spécialisé en cultures stratégiques et en développement agricole. Wilaya: Ouargla" },
+  { id:'exp020', nom:"Dadamoussa Mohamed Lakhdar / دادة موسى محمد لخضر", poste:"Professeur — Agriculture saharienne", org:"Université Touggourt — Conseil Scientifique MADR", cat:'regional', tel:'0666817391', email:'', notes:"Professeur en agriculture saharienne. Wilaya: Touggourt" },
+  { id:'exp021', nom:"Hannachi Slimane / حناشي سليمان", poste:"Expert — Agriculture saharienne / Aménagement terres", org:"Conseil Scientifique MADR", cat:'regional', tel:'0671349303', email:'', notes:"Expert en agriculture saharienne et en aménagement des terres. Wilaya: Ouargla" },
+  { id:'exp022', nom:"Oulad Hadjou Ishak / أولاد حجو إسحاق", poste:"Expert — Élevage bovin / Production laitière", org:"Conseil Scientifique MADR", cat:'regional', tel:'0560337846', email:'', notes:"Expert en élevage bovin et production laitière. Wilaya: Ghardaïa" },
+  { id:'exp023', nom:"Benhadid Abderahmane / بن حديد عبد الرحمن", poste:"Éleveur spécialisé — Élevage bovin moderne", org:"Conseil Scientifique MADR", cat:'entreprise', tel:'0550678631', email:'', notes:"Éleveur spécialisé en élevage bovin moderne et en pépinière de bovins. Wilaya: Ghardaïa" },
+  { id:'exp024', nom:"Habib Mohammed / حبيب محمد", poste:"Ingénieur agronome — Cultures intégrées / Élevage bovin", org:"Conseil Scientifique MADR", cat:'regional', tel:'0661208656', email:'', notes:"Ingénieur agronome spécialisé en cultures intégrées et en élevage bovin. Wilaya: Ghardaïa" },
+  { id:'exp025', nom:"Aissaoui Khaled / عيساوي خالد", poste:"Seeds Manager — Ziraatech / Ingénieur agronome", org:"Ziraatech — Conseil Scientifique MADR", cat:'entreprise', tel:'0660413173', email:'', notes:"Seeds manager Ziraatech, ingénieur agronome. Wilaya: Alger" },
+  { id:'exp026', nom:"Laouar Azzouz / لعوار عزوز", poste:"Agronome / Gérant de coopérative agricole", org:"Coopérative agricole — Conseil Scientifique MADR", cat:'regional', tel:'0560091919', email:'', notes:"Agronome, gérant de coopérative agricole. Wilaya: Oum El Bouaghi" },
+  { id:'exp027', nom:"Mili Ihssen / ميلي إحسان", poste:"Expert en céréaliculture", org:"Conseil Scientifique MADR", cat:'regional', tel:'0661497197', email:'', notes:"Expert en céréaliculture. Wilaya: Sétif" },
+  { id:'exp028', nom:"Benour Hamza / بن نور حمزة", poste:"Expert en oléagineuses", org:"Conseil Scientifique MADR", cat:'regional', tel:'0667759579', email:'', notes:"Expert en oléagineuses (plantes à huile). Wilaya: Sétif" },
+  { id:'exp029', nom:"Mohamed Badis / محمد باديس", poste:"Ingénieur agronome — Maraîchage / Céréales", org:"Conseil Scientifique MADR", cat:'regional', tel:'0550500273', email:'', notes:"Ingénieur agronome expert en maraîchage et céréales. Wilaya: Alger" },
+  { id:'exp030', nom:"Laaouar Merieme Abdelguergi", poste:"Professeur — ENSA", org:"École Nationale Supérieure Agronomique — Conseil Scientifique MADR", cat:'ministere', tel:'', email:'', notes:"Professeur à l\'École nationale supérieure agronomique (ENSA)." },
+  { id:'exp031', nom:"Hamzaoui Mohamed / حمزوي محمد", poste:"Expert en apiculture", org:"Conseil Scientifique MADR", cat:'regional', tel:'0770549552', email:'', notes:"Expert en apiculture (élevage d\'abeilles). Wilaya: Blida" },
+  { id:'exp032', nom:"Khalfallah Nadir / خلف الله نذير", poste:"Expert en numérisation", org:"Conseil Scientifique MADR", cat:'regional', tel:'0661500626', email:'', notes:"Expert en numérisation du secteur agricole. Wilaya: Alger" },
+  { id:'exp033', nom:"Allouache Mohammed / علواش محمد", poste:"Expert — Arboriculture / Maraîchage", org:"Conseil Scientifique MADR", cat:'regional', tel:'0550972826 / 0661223423', email:'', notes:"Expert en arboriculture et en maraîchage. Wilaya: Alger" },
+  { id:'exp034', nom:"Benrais Mounir / بن ريس منير", poste:"Docteur vétérinaire — Aviculture", org:"Conseil Scientifique MADR", cat:'regional', tel:'0772163722', email:'', notes:"Docteur vétérinaire spécialisé en aviculture. Wilaya: Oran" },
+  { id:'exp035', nom:"Dalil Hammani / دليل حماني", poste:"Docteur vétérinaire — Filière équine", org:"Conseil Scientifique MADR", cat:'regional', tel:'0663644840', email:'', notes:"Docteur vétérinaire, expert dans la filière équine. Wilaya: M\'sila" },
+];
+
+
+// ── CONTACTS CHAMBRES AGRICULTURE DE WILAYA (CAW) ─────────
+const CAW_CONTACTS = [
+  // 01 - ADRAR
+  { id:'caw01p', nom:"Haida Othman / حيدة عثمان", poste:"Président — Chambre Agriculture", org:"Chambre Agriculture Wilaya d'Adrar", cat:'chambre', tel:'0660815482', email:'CAW.01@cnafilaha.dz', notes:"Président de la chambre d'agriculture. Wilaya: Adrar (01)" },
+  { id:'caw01sg', nom:"Hamdou Abdelkader / الحمدو عبد القادر", poste:"Secrétaire Général — Chambre Agriculture", org:"Chambre Agriculture Wilaya d'Adrar", cat:'chambre', tel:'0660715703', email:'CAW.01@cnafilaha.dz', notes:"Secrétaire général de la chambre d'agriculture. Wilaya: Adrar (01)" },
+  // 02 - CHLEF
+  { id:'caw02p', nom:"Abdali Mohamed / عبدالي محمد", poste:"Président — Chambre Agriculture", org:"Chambre Agriculture Wilaya de Chlef", cat:'chambre', tel:'0550588770', email:'CAW.02@cnafilaha.dz', notes:"Président de la chambre d'agriculture. Wilaya: Chlef (02)" },
+  { id:'caw02sg', nom:"Addad Bilal / عداد بلال", poste:"Secrétaire Général — Chambre Agriculture", org:"Chambre Agriculture Wilaya de Chlef", cat:'chambre', tel:'0778485943', email:'CAW.02@cnafilaha.dz', notes:"Secrétaire général de la chambre d'agriculture. Wilaya: Chlef (02)" },
+  // 03 - LAGHOUAT
+  { id:'caw03p', nom:"Djaarun Ali / جعرون علي", poste:"Président — Chambre Agriculture", org:"Chambre Agriculture Wilaya de Laghouat", cat:'chambre', tel:'0655628685', email:'CAW.03@cnafilaha.dz', notes:"Président de la chambre d'agriculture. Wilaya: Laghouat (03)" },
+  { id:'caw03sg', nom:"Belaarbi Nazim / بلعربي نزيم", poste:"Secrétaire Général — Chambre Agriculture", org:"Chambre Agriculture Wilaya de Laghouat", cat:'chambre', tel:'0770220635', email:'CAW.03@cnafilaha.dz', notes:"Secrétaire général de la chambre d'agriculture. Wilaya: Laghouat (03)" },
+  // 04 - OUM EL BOUAGHI
+  { id:'caw04p', nom:"Lakhdari Khalifa / لخضاري خليفة", poste:"Président — Chambre Agriculture", org:"Chambre Agriculture Wilaya d'Oum El Bouaghi", cat:'chambre', tel:'0660920400', email:'CAW.04@cnafilaha.dz', notes:"Président de la chambre d'agriculture. Wilaya: Oum El Bouaghi (04)" },
+  { id:'caw04sg', nom:"Chaouche Seif Eddine / شاوش سيف الدين", poste:"Secrétaire Général — Chambre Agriculture", org:"Chambre Agriculture Wilaya d'Oum El Bouaghi", cat:'chambre', tel:'0660455511', email:'CAW.04@cnafilaha.dz', notes:"Secrétaire général de la chambre d'agriculture. Wilaya: Oum El Bouaghi (04)" },
+  // 05 - BATNA
+  { id:'caw05p', nom:"Yousefi Hamoudi / يوسفي حمودي", poste:"Président — Chambre Agriculture", org:"Chambre Agriculture Wilaya de Batna", cat:'chambre', tel:'0771937151', email:'CAW.05@cnafilaha.dz', notes:"Président de la chambre d'agriculture. Wilaya: Batna (05)" },
+  { id:'caw05sg', nom:"Ben Mansour Fateh / بن منصور فاتح", poste:"Secrétaire Général — Chambre Agriculture", org:"Chambre Agriculture Wilaya de Batna", cat:'chambre', tel:'0661303130', email:'CAW.05@cnafilaha.dz', notes:"Secrétaire général de la chambre d'agriculture. Wilaya: Batna (05)" },
+  // 06 - BEJAIA
+  { id:'caw06p', nom:"Iskounen Mohand Arzak / إسكونن محند أرزق", poste:"Président — Chambre Agriculture", org:"Chambre Agriculture Wilaya de Béjaïa", cat:'chambre', tel:'0661680658', email:'CAW.06@cnafilaha.dz', notes:"Président de la chambre d'agriculture. Wilaya: Béjaïa (06)" },
+  { id:'caw06sg', nom:"Moain Alawa / معين علاوة", poste:"Secrétaire Général — Chambre Agriculture", org:"Chambre Agriculture Wilaya de Béjaïa", cat:'chambre', tel:'0699540683', email:'CAW.06@cnafilaha.dz', notes:"Secrétaire général de la chambre d'agriculture. Wilaya: Béjaïa (06)" },
+  // 07 - BISKRA
+  { id:'caw07p', nom:"Kemmari Masoud / قماري مسعود", poste:"Président — Chambre Agriculture", org:"Chambre Agriculture Wilaya de Biskra", cat:'chambre', tel:'', email:'CAW.07@cnafilaha.dz', notes:"Président de la chambre d'agriculture. Wilaya: Biskra (07)" },
+  { id:'caw07sg', nom:"SG Biskra / أمين عام بسكرة", poste:"Secrétaire Général — Chambre Agriculture", org:"Chambre Agriculture Wilaya de Biskra", cat:'chambre', tel:'0554013759', email:'CAW.07@cnafilaha.dz', notes:"Secrétaire général de la chambre d'agriculture. Wilaya: Biskra (07)" },
+  // 08 - BECHAR
+  { id:'caw08p', nom:"Tayibibi Abdelkarim / طيبيبي عبد الكريم", poste:"Président — Chambre Agriculture", org:"Chambre Agriculture Wilaya de Béchar", cat:'chambre', tel:'0661374009', email:'CAW.08@cnafilaha.dz', notes:"Président de la chambre d'agriculture. Wilaya: Béchar (08)" },
+  { id:'caw08sg', nom:"Ouamane Sofiane / ومان سفيان", poste:"Secrétaire Général — Chambre Agriculture", org:"Chambre Agriculture Wilaya de Béchar", cat:'chambre', tel:'0661614207', email:'CAW.08@cnafilaha.dz', notes:"Secrétaire général de la chambre d'agriculture. Wilaya: Béchar (08)" },
+  // 09 - BLIDA
+  { id:'caw09p', nom:"Jabbar Rachid / جبار رشيد", poste:"Président — Chambre Agriculture", org:"Chambre Agriculture Wilaya de Blida", cat:'chambre', tel:'0555778846', email:'CAW.09@cnafilaha.dz', notes:"Président de la chambre d'agriculture. Wilaya: Blida (09)" },
+  { id:'caw09sg', nom:"Jamel Kamila / جمال كاملة", poste:"Secrétaire Général — Chambre Agriculture", org:"Chambre Agriculture Wilaya de Blida", cat:'chambre', tel:'0661775422', email:'CAW.09@cnafilaha.dz', notes:"Secrétaire général de la chambre d'agriculture. Wilaya: Blida (09)" },
+  // 10 - BOUIRA
+  { id:'caw10p', nom:"Damoush Omar / دموش عمر", poste:"Président — Chambre Agriculture", org:"Chambre Agriculture Wilaya de Bouira", cat:'chambre', tel:'0667358319', email:'CAW.10@cnafilaha.dz', notes:"Président de la chambre d'agriculture. Wilaya: Bouira (10)" },
+  { id:'caw10sg', nom:"Haed Mohamed / حائد محمد", poste:"Secrétaire Général — Chambre Agriculture", org:"Chambre Agriculture Wilaya de Bouira", cat:'chambre', tel:'0551928278', email:'CAW.10@cnafilaha.dz', notes:"Secrétaire général de la chambre d'agriculture. Wilaya: Bouira (10)" },
+  // 11 - TAMANRASSET
+  { id:'caw11p', nom:"Abdelawi Saleh / عبد اللاوي صالح", poste:"Président — Chambre Agriculture", org:"Chambre Agriculture Wilaya de Tamanrasset", cat:'chambre', tel:'0663915351', email:'CAW.11@cnafilaha.dz', notes:"Président de la chambre d'agriculture. Wilaya: Tamanrasset (11)" },
+  { id:'caw11sg', nom:"Zannouche Sofiane / زنوش سفيان", poste:"Secrétaire Général — Chambre Agriculture", org:"Chambre Agriculture Wilaya de Tamanrasset", cat:'chambre', tel:'0773317355', email:'CAW.11@cnafilaha.dz', notes:"Secrétaire général de la chambre d'agriculture. Wilaya: Tamanrasset (11)" },
+  // 12 - TEBESSA
+  { id:'caw12p', nom:"Soltani Mostafa / سلطاني مصطفى", poste:"Président — Chambre Agriculture", org:"Chambre Agriculture Wilaya de Tébessa", cat:'chambre', tel:'0662109818', email:'CAW.12@cnafilaha.dz', notes:"Président de la chambre d'agriculture. Wilaya: Tébessa (12)" },
+  { id:'caw12sg', nom:"Kamoud Lahbib / كمنود لحبيب", poste:"Secrétaire Général — Chambre Agriculture", org:"Chambre Agriculture Wilaya de Tébessa", cat:'chambre', tel:'0660850797', email:'CAW.12@cnafilaha.dz', notes:"Secrétaire général de la chambre d'agriculture. Wilaya: Tébessa (12)" },
+  // 13 - TLEMCEN
+  { id:'caw13p', nom:"Ben Djedi Taj / بن جدي تاج", poste:"Président — Chambre Agriculture", org:"Chambre Agriculture Wilaya de Tlemcen", cat:'chambre', tel:'0662109810', email:'CAW.13@cnafilaha.dz', notes:"Président de la chambre d'agriculture. Wilaya: Tlemcen (13)" },
+  { id:'caw13sg', nom:"Saker Abderrahman / ساكر عبد الرحمان", poste:"Secrétaire Général — Chambre Agriculture", org:"Chambre Agriculture Wilaya de Tlemcen", cat:'chambre', tel:'0661363740', email:'CAW.13@cnafilaha.dz', notes:"Secrétaire général de la chambre d'agriculture. Wilaya: Tlemcen (13)" },
+  // 14 - TIARET
+  { id:'caw14p', nom:"Abedi Elarbi / عابدي العربي", poste:"Président — Chambre Agriculture", org:"Chambre Agriculture Wilaya de Tiaret", cat:'chambre', tel:'0661718840', email:'CAW.14@cnafilaha.dz', notes:"Président de la chambre d'agriculture. Wilaya: Tiaret (14)" },
+  { id:'caw14sg', nom:"Djaalouek Taher / جعلوك طاهر", poste:"Secrétaire Général — Chambre Agriculture", org:"Chambre Agriculture Wilaya de Tiaret", cat:'chambre', tel:'0555926959', email:'CAW.14@cnafilaha.dz', notes:"Secrétaire général de la chambre d'agriculture. Wilaya: Tiaret (14)" },
+  // 15 - TIZI OUZOU
+  { id:'caw15p', nom:"Saydani Hamid / سعيداني حميد", poste:"Président — Chambre Agriculture", org:"Chambre Agriculture Wilaya de Tizi Ouzou", cat:'chambre', tel:'0669245681', email:'CAW.15@cnafilaha.dz', notes:"Président de la chambre d'agriculture. Wilaya: Tizi Ouzou (15)" },
+  { id:'caw15sg', nom:"Saadi Rachid / سعدي رشيد", poste:"Secrétaire Général — Chambre Agriculture", org:"Chambre Agriculture Wilaya de Tizi Ouzou", cat:'chambre', tel:'0793021293', email:'CAW.15@cnafilaha.dz', notes:"Secrétaire général de la chambre d'agriculture. Wilaya: Tizi Ouzou (15)" },
+  // 16 - ALGER
+  { id:'caw16p', nom:"Djraybia Ibrahim / جرايبية إبراهيم", poste:"Président — Chambre Agriculture", org:"Chambre Agriculture Wilaya d'Alger", cat:'chambre', tel:'0550640780', email:'CAW.16@cnafilaha.dz', notes:"Président de la chambre d'agriculture. Wilaya: Alger (16)" },
+  { id:'caw16sg', nom:"Ben Abdelaziz Tarik / بن عبد العزيز طريق", poste:"Secrétaire Général — Chambre Agriculture", org:"Chambre Agriculture Wilaya d'Alger", cat:'chambre', tel:'0557209872', email:'CAW.16@cnafilaha.dz', notes:"Secrétaire général de la chambre d'agriculture. Wilaya: Alger (16)" },
+  // 17 - DJELFA
+  { id:'caw17p', nom:"Kdid Mohamed / قديد محمد", poste:"Président — Chambre Agriculture", org:"Chambre Agriculture Wilaya de Djelfa", cat:'chambre', tel:'0776202862', email:'CAW.17@cnafilaha.dz', notes:"Président de la chambre d'agriculture. Wilaya: Djelfa (17)" },
+  { id:'caw17sg', nom:"Bernawi Hamid / برناوي حميد", poste:"Secrétaire Général — Chambre Agriculture", org:"Chambre Agriculture Wilaya de Djelfa", cat:'chambre', tel:'0553273176', email:'CAW.17@cnafilaha.dz', notes:"Secrétaire général de la chambre d'agriculture. Wilaya: Djelfa (17)" },
+  // 18 - JIJEL
+  { id:'caw18p', nom:"Baka Tawfik / باقة توفيق", poste:"Président — Chambre Agriculture", org:"Chambre Agriculture Wilaya de Jijel", cat:'chambre', tel:'0550039495', email:'CAW.18@cnafilaha.dz', notes:"Président de la chambre d'agriculture. Wilaya: Jijel (18)" },
+  { id:'caw18sg', nom:"Belkhiri Abdelkader / بلخيري عبد القادر", poste:"Secrétaire Général — Chambre Agriculture", org:"Chambre Agriculture Wilaya de Jijel", cat:'chambre', tel:'0661637600', email:'CAW.18@cnafilaha.dz', notes:"Secrétaire général de la chambre d'agriculture. Wilaya: Jijel (18)" },
+  // 19 - SETIF
+  { id:'caw19p', nom:"Mostafa Nasseri / مصطفى ناصري", poste:"Président — Chambre Agriculture", org:"Chambre Agriculture Wilaya de Sétif", cat:'chambre', tel:'0778538574', email:'CAW.19@cnafilaha.dz', notes:"Président de la chambre d'agriculture. Wilaya: Sétif (19)" },
+  { id:'caw19sg', nom:"Zadam Yassin / زدام ياسين", poste:"Secrétaire Général — Chambre Agriculture", org:"Chambre Agriculture Wilaya de Sétif", cat:'chambre', tel:'0661997519', email:'CAW.19@cnafilaha.dz', notes:"Secrétaire général de la chambre d'agriculture. Wilaya: Sétif (19)" },
+  // 20 - SAIDA
+  { id:'caw20p', nom:"Mohamed Dou El Arifin Saidi / محمد دو العارفين سعيدي", poste:"Président — Chambre Agriculture", org:"Chambre Agriculture Wilaya de Saïda", cat:'chambre', tel:'0668558629', email:'CAW.20@cnafilaha.dz', notes:"Président de la chambre d'agriculture. Wilaya: Saïda (20)" },
+  { id:'caw20sg', nom:"Ben Makhluf Hamza / بن مخلوف حمزة", poste:"Secrétaire Général — Chambre Agriculture", org:"Chambre Agriculture Wilaya de Saïda", cat:'chambre', tel:'0770507114', email:'CAW.20@cnafilaha.dz', notes:"Secrétaire général de la chambre d'agriculture. Wilaya: Saïda (20)" },
+  // 21 - SKIKDA
+  { id:'caw21p', nom:"Berkouk Mrad / برقوق مراد", poste:"Président — Chambre Agriculture", org:"Chambre Agriculture Wilaya de Skikda", cat:'chambre', tel:'0661236856', email:'CAW.21@cnafilaha.dz', notes:"Président de la chambre d'agriculture. Wilaya: Skikda (21)" },
+  { id:'caw21sg', nom:"Zeidani Nadir / زيداني نذير", poste:"Secrétaire Général — Chambre Agriculture", org:"Chambre Agriculture Wilaya de Skikda", cat:'chambre', tel:'0770231441', email:'CAW.21@cnafilaha.dz', notes:"Secrétaire général de la chambre d'agriculture. Wilaya: Skikda (21)" },
+  // 22 - SIDI BEL ABBES
+  { id:'caw22p', nom:"Ben Khalid Miloud / بن خالد ميلود", poste:"Président — Chambre Agriculture", org:"Chambre Agriculture Wilaya de Sidi Bel Abbès", cat:'chambre', tel:'0660922113', email:'CAW.22@cnafilaha.dz', notes:"Président de la chambre d'agriculture. Wilaya: Sidi Bel Abbès (22)" },
+  { id:'caw22sg', nom:"Shlaybi Amine / شلايبي أمين", poste:"Secrétaire Général — Chambre Agriculture", org:"Chambre Agriculture Wilaya de Sidi Bel Abbès", cat:'chambre', tel:'', email:'CAW.22@cnafilaha.dz', notes:"Secrétaire général de la chambre d'agriculture. Wilaya: Sidi Bel Abbès (22)" },
+  // 23 - ANNABA
+  { id:'caw23p', nom:"Ammar Saadi / عمار سعدي", poste:"Président — Chambre Agriculture", org:"Chambre Agriculture Wilaya d'Annaba", cat:'chambre', tel:'0661240186', email:'CAW.23@cnafilaha.dz', notes:"Président de la chambre d'agriculture. Wilaya: Annaba (23)" },
+  { id:'caw23sg', nom:"Ghrabe Abdeljalil / غراب عبد الجليل", poste:"Secrétaire Général — Chambre Agriculture", org:"Chambre Agriculture Wilaya d'Annaba", cat:'chambre', tel:'0780650434', email:'CAW.23@cnafilaha.dz', notes:"Secrétaire général de la chambre d'agriculture. Wilaya: Annaba (23)" },
+  // 24 - GUELMA
+  { id:'caw24p', nom:"Hdidi Ammar / حديدي عمار", poste:"Président — Chambre Agriculture", org:"Chambre Agriculture Wilaya de Guelma", cat:'chambre', tel:'0770750245', email:'CAW.24@cnafilaha.dz', notes:"Président de la chambre d'agriculture. Wilaya: Guelma (24)" },
+  { id:'caw24sg', nom:"Mesbah Jamal / مصباح جمال", poste:"Secrétaire Général — Chambre Agriculture", org:"Chambre Agriculture Wilaya de Guelma", cat:'chambre', tel:'0655666246', email:'CAW.24@cnafilaha.dz', notes:"Secrétaire général de la chambre d'agriculture. Wilaya: Guelma (24)" },
+  // 25 - CONSTANTINE
+  { id:'caw25p', nom:"Dali Mehdi / دالي مهدي", poste:"Président — Chambre Agriculture", org:"Chambre Agriculture Wilaya de Constantine", cat:'chambre', tel:'0552866828 / 0778502544', email:'CAW.25@cnafilaha.dz', notes:"Président de la chambre d'agriculture. Wilaya: Constantine (25)" },
+  { id:'caw25sg1', nom:"Messai Nour Eddine / مسعى نور الدين", poste:"Secrétaire Général — Chambre Agriculture", org:"Chambre Agriculture Wilaya de Constantine", cat:'chambre', tel:'0661869370', email:'CAW.25@cnafilaha.dz', notes:"Secrétaire général de la chambre d'agriculture. Wilaya: Constantine (25)" },
+  { id:'caw25sg2', nom:"Ben Cheikh Youssef Hicham / بن الشيخ يوسف هشام", poste:"Secrétaire Général Adjoint — Chambre Agriculture", org:"Chambre Agriculture Wilaya de Constantine", cat:'chambre', tel:'0660999880', email:'CAW.25@cnafilaha.dz', notes:"Secrétaire général adjoint de la chambre d'agriculture. Wilaya: Constantine (25)" },
+  // 26 - MEDEA
+  { id:'caw26p', nom:"Zgoumi Mostafa / زقومي مصطفى", poste:"Président — Chambre Agriculture", org:"Chambre Agriculture Wilaya de Médéa", cat:'chambre', tel:'0550952252', email:'CAW.26@cnafilaha.dz', notes:"Président de la chambre d'agriculture. Wilaya: Médéa (26)" },
+  { id:'caw26sg', nom:"Mouzgrit Marwan / موزغريت مروان", poste:"Secrétaire Général — Chambre Agriculture", org:"Chambre Agriculture Wilaya de Médéa", cat:'chambre', tel:'0560013685', email:'CAW.26@cnafilaha.dz', notes:"Secrétaire général de la chambre d'agriculture. Wilaya: Médéa (26)" },
+  // 27 - MOSTAGANEM
+  { id:'caw27p', nom:"Président CAW Mostaganem", poste:"Président — Chambre Agriculture", org:"Chambre Agriculture Wilaya de Mostaganem", cat:'chambre', tel:'0776738777', email:'CAW.27@cnafilaha.dz', notes:"Président de la chambre d'agriculture. Wilaya: Mostaganem (27)" },
+  { id:'caw27sg', nom:"Ben Alia Abdellah / بن عالية عبد الله", poste:"Secrétaire Général — Chambre Agriculture", org:"Chambre Agriculture Wilaya de Mostaganem", cat:'chambre', tel:'0660616719', email:'CAW.27@cnafilaha.dz', notes:"Secrétaire général de la chambre d'agriculture. Wilaya: Mostaganem (27)" },
+  // 28 - M'SILA
+  { id:'caw28p', nom:"Boussia Othman / بوصيع عثمان", poste:"Président — Chambre Agriculture", org:"Chambre Agriculture Wilaya de M'Sila", cat:'chambre', tel:'0771831961', email:'CAW.28@cnafilaha.dz', notes:"Président de la chambre d'agriculture. Wilaya: M'Sila (28)" },
+  { id:'caw28sg', nom:"Belaadjouze Abdelbasit / بلعجوز عبد الباسط", poste:"Secrétaire Général — Chambre Agriculture", org:"Chambre Agriculture Wilaya de M'Sila", cat:'chambre', tel:'0770215819', email:'CAW.28@cnafilaha.dz', notes:"Secrétaire général de la chambre d'agriculture. Wilaya: M'Sila (28)" },
+  // 29 - MASCARA
+  { id:'caw29p', nom:"Zoukarat Mohamed / زوقارات محمد", poste:"Président — Chambre Agriculture", org:"Chambre Agriculture Wilaya de Mascara", cat:'chambre', tel:'0666596755', email:'CAW.29@cnafilaha.dz', notes:"Président de la chambre d'agriculture. Wilaya: Mascara (29)" },
+  { id:'caw29sg', nom:"Dena Boualem / دنة بوعلام", poste:"Secrétaire Général — Chambre Agriculture", org:"Chambre Agriculture Wilaya de Mascara", cat:'chambre', tel:'0660412011', email:'CAW.29@cnafilaha.dz', notes:"Secrétaire général de la chambre d'agriculture. Wilaya: Mascara (29)" },
+  // 30 - OUARGLA
+  { id:'caw30p', nom:"Hammani Moussa / حماني موسى", poste:"Président — Chambre Agriculture", org:"Chambre Agriculture Wilaya d'Ouargla", cat:'chambre', tel:'0661380604', email:'CAW.30@cnafilaha.dz', notes:"Président de la chambre d'agriculture. Wilaya: Ouargla (30)" },
+  { id:'caw30sg', nom:"Remli Yassin / رملي ياسين", poste:"Secrétaire Général — Chambre Agriculture", org:"Chambre Agriculture Wilaya d'Ouargla", cat:'chambre', tel:'0558823055', email:'CAW.30@cnafilaha.dz', notes:"Secrétaire général de la chambre d'agriculture. Wilaya: Ouargla (30)" },
+  // 31 - ORAN
+  { id:'caw31p', nom:"Rizouka Said / ريزوقة سعيد", poste:"Président — Chambre Agriculture", org:"Chambre Agriculture Wilaya d'Oran", cat:'chambre', tel:'0662242806', email:'CAW.31@cnafilaha.dz', notes:"Président de la chambre d'agriculture. Wilaya: Oran (31)" },
+  { id:'caw31sg', nom:"Meimoni Fatmi / ميموني فاطمي", poste:"Secrétaire Général — Chambre Agriculture", org:"Chambre Agriculture Wilaya d'Oran", cat:'chambre', tel:'0699553025', email:'CAW.31@cnafilaha.dz', notes:"Secrétaire général de la chambre d'agriculture. Wilaya: Oran (31)" },
+  // 32 - EL BAYADH
+  { id:'caw32p', nom:"Bouazza Lakhdar / بوعزة لخضر", poste:"Président — Chambre Agriculture", org:"Chambre Agriculture Wilaya d'El Bayadh", cat:'chambre', tel:'0668801709', email:'CAW.32@cnafilaha.dz', notes:"Président de la chambre d'agriculture. Wilaya: El Bayadh (32)" },
+  { id:'caw32sg', nom:"Makhlifi Abdelkhalek / مخلوفي عبد الخالق", poste:"Secrétaire Général — Chambre Agriculture", org:"Chambre Agriculture Wilaya d'El Bayadh", cat:'chambre', tel:'0669978354', email:'CAW.32@cnafilaha.dz', notes:"Secrétaire général de la chambre d'agriculture. Wilaya: El Bayadh (32)" },
+  // 33 - ILLIZI
+  { id:'caw33p', nom:"Gouma Mohamed / قومة محمد", poste:"Président — Chambre Agriculture", org:"Chambre Agriculture Wilaya d'Illizi", cat:'chambre', tel:'0551423283', email:'CAW.33@cnafilaha.dz', notes:"Président de la chambre d'agriculture. Wilaya: Illizi (33)" },
+  { id:'caw33sg', nom:"Sehloni Taher / سحلوني طاهر", poste:"Secrétaire Général — Chambre Agriculture", org:"Chambre Agriculture Wilaya d'Illizi", cat:'chambre', tel:'0770890371 / 0672649859', email:'CAW.33@cnafilaha.dz', notes:"Secrétaire général de la chambre d'agriculture. Wilaya: Illizi (33)" },
+  // 34 - BORDJ BOU ARRERIDJ
+  { id:'caw34p', nom:"Djedi Fouad / جدي فؤاد", poste:"Président — Chambre Agriculture", org:"Chambre Agriculture Wilaya de Bordj Bou Arréridj", cat:'chambre', tel:'0660731868', email:'CAW.34@cnafilaha.dz', notes:"Président de la chambre d'agriculture. Wilaya: Bordj Bou Arréridj (34)" },
+  { id:'caw34sg', nom:"Moahdi Nour Eddine / مواحدي نور الدين", poste:"Secrétaire Général — Chambre Agriculture", org:"Chambre Agriculture Wilaya de Bordj Bou Arréridj", cat:'chambre', tel:'0770751858', email:'CAW.34@cnafilaha.dz', notes:"Secrétaire général de la chambre d'agriculture. Wilaya: Bordj Bou Arréridj (34)" },
+  // 35 - BOUMERDES
+  { id:'caw35p', nom:"Boumediene Sadek / بومدين صادق", poste:"Président — Chambre Agriculture", org:"Chambre Agriculture Wilaya de Boumerdès", cat:'chambre', tel:'0550427728', email:'CAW.35@cnafilaha.dz', notes:"Président de la chambre d'agriculture. Wilaya: Boumerdès (35)" },
+  { id:'caw35sg', nom:"Massoudi Rachid / مسعودي رشيد", poste:"Secrétaire Général — Chambre Agriculture", org:"Chambre Agriculture Wilaya de Boumerdès", cat:'chambre', tel:'0783175105', email:'CAW.35@cnafilaha.dz', notes:"Secrétaire général de la chambre d'agriculture. Wilaya: Boumerdès (35)" },
+  // 36 - EL TARF
+  { id:'caw36p', nom:"Labadlia Sasi / لعبادلية ساسي", poste:"Président — Chambre Agriculture", org:"Chambre Agriculture Wilaya d'El Tarf", cat:'chambre', tel:'0661147201', email:'CAW.36@cnafilaha.dz', notes:"Président de la chambre d'agriculture. Wilaya: El Tarf (36)" },
+  { id:'caw36sg', nom:"Nassah Aziza / نصاح عزيزة", poste:"Secrétaire Général — Chambre Agriculture", org:"Chambre Agriculture Wilaya d'El Tarf", cat:'chambre', tel:'0669703836 / 0794241658', email:'CAW.36@cnafilaha.dz', notes:"Secrétaire général de la chambre d'agriculture. Wilaya: El Tarf (36)" },
+  // 37 - TINDOUF
+  { id:'caw37p', nom:"Boughnama Abderrazak / بوغنامة عبد الرزاق", poste:"Président — Chambre Agriculture", org:"Chambre Agriculture Wilaya de Tindouf", cat:'chambre', tel:'0671513592', email:'CAW.37@cnafilaha.dz', notes:"Président de la chambre d'agriculture. Wilaya: Tindouf (37)" },
+  { id:'caw37sg', nom:"Sanhoury El Mehdi / صنهوري المهدي", poste:"Secrétaire Général — Chambre Agriculture", org:"Chambre Agriculture Wilaya de Tindouf", cat:'chambre', tel:'0663229556', email:'CAW.37@cnafilaha.dz', notes:"Secrétaire général de la chambre d'agriculture. Wilaya: Tindouf (37)" },
+  // 38 - TISSEMSILT
+  { id:'caw38p', nom:"Ali Bay Kada / علي باي قادة", poste:"Président — Chambre Agriculture", org:"Chambre Agriculture Wilaya de Tissemsilt", cat:'chambre', tel:'0661118880', email:'CAW.38@cnafilaha.dz', notes:"Président de la chambre d'agriculture. Wilaya: Tissemsilt (38)" },
+  { id:'caw38sg', nom:"Ben Tamra Mohamed / بن تمرة محمد", poste:"Secrétaire Général — Chambre Agriculture", org:"Chambre Agriculture Wilaya de Tissemsilt", cat:'chambre', tel:'0780431727', email:'CAW.38@cnafilaha.dz', notes:"Secrétaire général de la chambre d'agriculture. Wilaya: Tissemsilt (38)" },
+  // 39 - EL OUED
+  { id:'caw39p', nom:"Othmani Djalloul / عثماني جلول", poste:"Président — Chambre Agriculture", org:"Chambre Agriculture Wilaya d'El Oued", cat:'chambre', tel:'0663987423', email:'CAW.39@cnafilaha.dz', notes:"Président de la chambre d'agriculture. Wilaya: El Oued (39)" },
+  { id:'caw39sg', nom:"Mostafawi Mohamed / مصطفاوي محمد", poste:"Secrétaire Général — Chambre Agriculture", org:"Chambre Agriculture Wilaya d'El Oued", cat:'chambre', tel:'0697343507', email:'CAW.39@cnafilaha.dz', notes:"Secrétaire général de la chambre d'agriculture. Wilaya: El Oued (39)" },
+  // 40 - KHENCHELA
+  { id:'caw40p', nom:"Kenzari Yassin / كنزاري ياسين", poste:"Président — Chambre Agriculture", org:"Chambre Agriculture Wilaya de Khenchela", cat:'chambre', tel:'0561727305', email:'CAW.40@cnafilaha.dz', notes:"Président de la chambre d'agriculture. Wilaya: Khenchela (40)" },
+  { id:'caw40sg', nom:"Brahimi Mehdi / براهيمي مهدي", poste:"Secrétaire Général — Chambre Agriculture", org:"Chambre Agriculture Wilaya de Khenchela", cat:'chambre', tel:'0661584964', email:'CAW.40@cnafilaha.dz', notes:"Secrétaire général de la chambre d'agriculture. Wilaya: Khenchela (40)" },
+  // 41 - SOUK AHRAS
+  { id:'caw41p', nom:"Hambli Mohamed Yazid / حمبلي محمد يزيد", poste:"Président — Chambre Agriculture", org:"Chambre Agriculture Wilaya de Souk Ahras", cat:'chambre', tel:'0660323588', email:'CAW.41@cnafilaha.dz', notes:"Président de la chambre d'agriculture. Wilaya: Souk Ahras (41)" },
+  { id:'caw41sg', nom:"Bshihi Hamza / بشيحي حمزة", poste:"Secrétaire Général — Chambre Agriculture", org:"Chambre Agriculture Wilaya de Souk Ahras", cat:'chambre', tel:'0698283122', email:'CAW.41@cnafilaha.dz', notes:"Secrétaire général de la chambre d'agriculture. Wilaya: Souk Ahras (41)" },
+  // 42 - TIPAZA
+  { id:'caw42p', nom:"Othman Talba Rachid / عثمان طلبة رشيد", poste:"Président — Chambre Agriculture", org:"Chambre Agriculture Wilaya de Tipaza", cat:'chambre', tel:'0557960149 / 0672313988', email:'CAW.42@cnafilaha.dz', notes:"Président de la chambre d'agriculture. Wilaya: Tipaza (42)" },
+  { id:'caw42sg', nom:"Hani Farid / هاني فريد", poste:"Secrétaire Général — Chambre Agriculture", org:"Chambre Agriculture Wilaya de Tipaza", cat:'chambre', tel:'0561729523', email:'CAW.42@cnafilaha.dz', notes:"Secrétaire général de la chambre d'agriculture. Wilaya: Tipaza (42)" },
+  // 43 - MILA
+  { id:'caw43p', nom:"Irdir Ammar / إردير عمار", poste:"Président — Chambre Agriculture", org:"Chambre Agriculture Wilaya de Mila", cat:'chambre', tel:'0550357426', email:'CAW.43@cnafilaha.dz', notes:"Président de la chambre d'agriculture. Wilaya: Mila (43)" },
+  { id:'caw43sg', nom:"Assouwar El Tayeb / عصوار الطيب", poste:"Secrétaire Général — Chambre Agriculture", org:"Chambre Agriculture Wilaya de Mila", cat:'chambre', tel:'0667832748', email:'CAW.43@cnafilaha.dz', notes:"Secrétaire général de la chambre d'agriculture. Wilaya: Mila (43)" },
+  // 44 - AIN DEFLA
+  { id:'caw44p', nom:"El Haj Djelalali / الحاج جعلالي", poste:"Président — Chambre Agriculture", org:"Chambre Agriculture Wilaya d'Aïn Defla", cat:'chambre', tel:'0777129957', email:'CAW.44@cnafilaha.dz', notes:"Président de la chambre d'agriculture. Wilaya: Aïn Defla (44)" },
+  { id:'caw44sg', nom:"Ouaeil Mohamed Milyan / وعيل محمد مليان", poste:"Secrétaire Général — Chambre Agriculture", org:"Chambre Agriculture Wilaya d'Aïn Defla", cat:'chambre', tel:'0660443844', email:'CAW.44@cnafilaha.dz', notes:"Secrétaire général de la chambre d'agriculture. Wilaya: Aïn Defla (44)" },
+  // 45 - NAAMA
+  { id:'caw45p', nom:"Boualem Ahmed / بوعلام أحمد", poste:"Président — Chambre Agriculture", org:"Chambre Agriculture Wilaya de Naâma", cat:'chambre', tel:'0662448617', email:'CAW.45@cnafilaha.dz', notes:"Président de la chambre d'agriculture. Wilaya: Naâma (45)" },
+  { id:'caw45sg', nom:"Dahawi Sahli Omar / دحاوي سحلي عمر", poste:"Secrétaire Général — Chambre Agriculture", org:"Chambre Agriculture Wilaya de Naâma", cat:'chambre', tel:'0663981513', email:'CAW.45@cnafilaha.dz', notes:"Secrétaire général de la chambre d'agriculture. Wilaya: Naâma (45)" },
+  // 46 - AIN TEMOUCHENT
+  { id:'caw46p', nom:"Belmo Ahmed / بلمو أحمد", poste:"Président — Chambre Agriculture", org:"Chambre Agriculture Wilaya d'Aïn Témouchent", cat:'chambre', tel:'0770802670', email:'CAW.46@cnafilaha.dz', notes:"Président de la chambre d'agriculture. Wilaya: Aïn Témouchent (46)" },
+  { id:'caw46sg', nom:"Boukraa Omar / بوكراع عمر", poste:"Secrétaire Général — Chambre Agriculture", org:"Chambre Agriculture Wilaya d'Aïn Témouchent", cat:'chambre', tel:'0661111601', email:'CAW.46@cnafilaha.dz', notes:"Secrétaire général de la chambre d'agriculture. Wilaya: Aïn Témouchent (46)" },
+  // 47 - GHARDAIA
+  { id:'caw47p', nom:"Oulad Hadar Rabeh / أولاد هدار رابح", poste:"Président — Chambre Agriculture", org:"Chambre Agriculture Wilaya de Ghardaïa", cat:'chambre', tel:'0661470247', email:'CAW.47@cnafilaha.dz', notes:"Président de la chambre d'agriculture. Wilaya: Ghardaïa (47)" },
+  { id:'caw47sg', nom:"Shbihi Bahri / شبيحي بحري", poste:"Secrétaire Général — Chambre Agriculture", org:"Chambre Agriculture Wilaya de Ghardaïa", cat:'chambre', tel:'0661599544', email:'CAW.47@cnafilaha.dz', notes:"Secrétaire général de la chambre d'agriculture. Wilaya: Ghardaïa (47)" },
+  // 48 - RELIZANE (GHILIZANE)
+  { id:'caw48p', nom:"Issa Tawfik Abderrahim / عيسى توفيق عبد الرحيم", poste:"Président — Chambre Agriculture", org:"Chambre Agriculture Wilaya de Relizane", cat:'chambre', tel:'0770266030', email:'CAW.48@cnafilaha.dz', notes:"Président de la chambre d'agriculture. Wilaya: Relizane (48)" },
+  { id:'caw48sg', nom:"Khadem Mohamed / خديم محمد", poste:"Secrétaire Général — Chambre Agriculture", org:"Chambre Agriculture Wilaya de Relizane", cat:'chambre', tel:'0662654435', email:'CAW.48@cnafilaha.dz', notes:"Secrétaire général de la chambre d'agriculture. Wilaya: Relizane (48)" },
+  // 49 - TIMIMOUNE
+  { id:'caw49p', nom:"Troumi Mohamed / طرومي محمد", poste:"Président — Chambre Agriculture", org:"Chambre Agriculture Wilaya de Timimoune", cat:'chambre', tel:'0672118997', email:'CAW.49@cnafilaha.dz', notes:"Président de la chambre d'agriculture. Wilaya: Timimoune (49)" },
+  { id:'caw49sg', nom:"Yassin Karimi / ياسين كريمي", poste:"Secrétaire Général — Chambre Agriculture", org:"Chambre Agriculture Wilaya de Timimoune", cat:'chambre', tel:'0660443739', email:'CAW.49@cnafilaha.dz', notes:"Secrétaire général de la chambre d'agriculture. Wilaya: Timimoune (49)" },
+  // 50 - BORDJ BADJI MOKHTAR
+  { id:'caw50p', nom:"Belbali Mokhtar / بلبالي مختار", poste:"Président — Chambre Agriculture", org:"Chambre Agriculture Wilaya de Bordj Badji Mokhtar", cat:'chambre', tel:'0664030998', email:'CAW.50@cnafilaha.dz', notes:"Président de la chambre d'agriculture. Wilaya: Bordj Badji Mokhtar (50)" },
+  { id:'caw50sg', nom:"Najm Amamah / نجم عمامة", poste:"Secrétaire Général — Chambre Agriculture", org:"Chambre Agriculture Wilaya de Bordj Badji Mokhtar", cat:'chambre', tel:'0660604626', email:'CAW.50@cnafilaha.dz', notes:"Secrétaire général de la chambre d'agriculture. Wilaya: Bordj Badji Mokhtar (50)" },
+  // 51 - OULED DJELLAL
+  { id:'caw51p', nom:"Lounis Rabia / لونيس رابية", poste:"Président — Chambre Agriculture", org:"Chambre Agriculture Wilaya d'Ouled Djellal", cat:'chambre', tel:'0662102571', email:'CAW.51@cnafilaha.dz', notes:"Président de la chambre d'agriculture. Wilaya: Ouled Djellal (51)" },
+  { id:'caw51sg', nom:"Salem Zakri / سالم زكري", poste:"Secrétaire Général — Chambre Agriculture", org:"Chambre Agriculture Wilaya d'Ouled Djellal", cat:'chambre', tel:'0672434029', email:'CAW.51@cnafilaha.dz', notes:"Secrétaire général de la chambre d'agriculture. Wilaya: Ouled Djellal (51)" },
+  // 52 - BENI ABBES
+  { id:'caw52p', nom:"Amrouni Mohamed / عمروني محمد", poste:"Président — Chambre Agriculture", org:"Chambre Agriculture Wilaya de Béni Abbès", cat:'chambre', tel:'0663736358', email:'CAW.52@cnafilaha.dz', notes:"Président de la chambre d'agriculture. Wilaya: Béni Abbès (52)" },
+  { id:'caw52sg', nom:"Ben Ahmed El Aiachi / بن أحمد العياشي", poste:"Secrétaire Général — Chambre Agriculture", org:"Chambre Agriculture Wilaya de Béni Abbès", cat:'chambre', tel:'0662309225', email:'CAW.52@cnafilaha.dz', notes:"Secrétaire général de la chambre d'agriculture. Wilaya: Béni Abbès (52)" },
+  // 53 - IN SALAH
+  { id:'caw53p', nom:"Ben Adin El Sheikh / بن عدين الشيخ", poste:"Président — Chambre Agriculture", org:"Chambre Agriculture Wilaya d'In Salah", cat:'chambre', tel:'0669933898', email:'CAW.53@cnafilaha.dz', notes:"Président de la chambre d'agriculture. Wilaya: In Salah (53)" },
+  { id:'caw53sg', nom:"Rahmani Othman / رحماني عثمان", poste:"Secrétaire Général — Chambre Agriculture", org:"Chambre Agriculture Wilaya d'In Salah", cat:'chambre', tel:'0673498733', email:'CAW.53@cnafilaha.dz', notes:"Secrétaire général de la chambre d'agriculture. Wilaya: In Salah (53)" },
+  // 54 - IN GUEZZAM
+  { id:'caw54p', nom:"Farankou Chernach / فرنقو شرناش", poste:"Président — Chambre Agriculture", org:"Chambre Agriculture Wilaya d'In Guezzam", cat:'chambre', tel:'0664178679', email:'CAW.54@cnafilaha.dz', notes:"Président de la chambre d'agriculture. Wilaya: In Guezzam (54)" },
+  { id:'caw54sg', nom:"Hamid Abdesslam / حميد عبد السلام", poste:"Secrétaire Général — Chambre Agriculture", org:"Chambre Agriculture Wilaya d'In Guezzam", cat:'chambre', tel:'0671542803', email:'CAW.54@cnafilaha.dz', notes:"Secrétaire général de la chambre d'agriculture. Wilaya: In Guezzam (54)" },
+  // 55 - TOUGGOURT
+  { id:'caw55p', nom:"Maash Bachir / معاش بشير", poste:"Président — Chambre Agriculture", org:"Chambre Agriculture Wilaya de Touggourt", cat:'chambre', tel:'0660142808', email:'CAW.55@cnafilaha.dz', notes:"Président de la chambre d'agriculture. Wilaya: Touggourt (55)" },
+  { id:'caw55sg', nom:"Mansour Mejoul / منصور مجول", poste:"Secrétaire Général — Chambre Agriculture", org:"Chambre Agriculture Wilaya de Touggourt", cat:'chambre', tel:'0673976280', email:'CAW.55@cnafilaha.dz', notes:"Secrétaire général de la chambre d'agriculture. Wilaya: Touggourt (55)" },
+  // 56 - DJANET
+  { id:'caw56p', nom:"Nakouzo Abderrahmane / نقوزو عبد الرحمان", poste:"Président — Chambre Agriculture", org:"Chambre Agriculture Wilaya de Djanet", cat:'chambre', tel:'0660941085', email:'CAW.56@cnafilaha.dz', notes:"Président de la chambre d'agriculture. Wilaya: Djanet (56)" },
+  { id:'caw56sg', nom:"Dada Walid / دادة وليد", poste:"Secrétaire Général — Chambre Agriculture", org:"Chambre Agriculture Wilaya de Djanet", cat:'chambre', tel:'0698803085', email:'CAW.56@cnafilaha.dz', notes:"Secrétaire général de la chambre d'agriculture. Wilaya: Djanet (56)" },
+  // 57 - EL M'GHAIR
+  { id:'caw57p', nom:"Berjouah El Taher / برجوح الطاهر", poste:"Président — Chambre Agriculture", org:"Chambre Agriculture Wilaya d'El M'Ghair", cat:'chambre', tel:'0671496784', email:'CAW.57@cnafilaha.dz', notes:"Président de la chambre d'agriculture. Wilaya: El M'Ghair (57)" },
+  { id:'caw57sg', nom:"Dbabi Taher / دبابي طاهر", poste:"Secrétaire Général — Chambre Agriculture", org:"Chambre Agriculture Wilaya d'El M'Ghair", cat:'chambre', tel:'0671974676', email:'CAW.57@cnafilaha.dz', notes:"Secrétaire général de la chambre d'agriculture. Wilaya: El M'Ghair (57)" },
+  // 58 - EL MENIA
+  { id:'caw58p', nom:"Oulad El Aid Herzo / ولاد العيد حرزو", poste:"Président — Chambre Agriculture", org:"Chambre Agriculture Wilaya d'El Menia", cat:'chambre', tel:'0666896942', email:'CAW.58@cnafilaha.dz', notes:"Président de la chambre d'agriculture. Wilaya: El Menia (58)" },
+  { id:'caw58sg', nom:"Seddiki Mounir / صديقي منير", poste:"Secrétaire Général — Chambre Agriculture", org:"Chambre Agriculture Wilaya d'El Menia", cat:'chambre', tel:'0666464133', email:'CAW.58@cnafilaha.dz', notes:"Secrétaire général de la chambre d'agriculture. Wilaya: El Menia (58)" },
+];
+
+function loadDb() {
+  // Always start from master list of experts
+  const stored = JSON.parse(localStorage.getItem('cna_partenaires') || 'null');
+  // Keep manually added entries (not in master or CAW lists)
+  const manual = stored ? stored.filter(p => !p.id.startsWith('exp0') && !p.id.startsWith('caw')) : [];
+  const merged = [...EXPERTS_MADR, ...CAW_CONTACTS, ...manual];
+  // Always save updated list
+  localStorage.setItem('cna_partenaires', JSON.stringify(merged));
+  return merged;
+}
+
+let db = {
+  partenaires: loadDb(),
+  dossiers:    JSON.parse(localStorage.getItem('cna_dossiers')    || '[]'),
+  reunions:    JSON.parse(localStorage.getItem('cna_reunions')    || '[]'),
+};
+let currentTab = 'partenaires';
+let editId = null;
+
+function save(key) { localStorage.setItem('cna_' + key, JSON.stringify(db[key])); }
+
+// ── IMPORT EN MASSE ────────────────────────────────────────
+function openImportModal() {
+  document.getElementById('importTextarea').value = '';
+  document.getElementById('importPreview').innerHTML = '';
+  document.getElementById('importCount').textContent = '';
+  document.getElementById('modalImport').classList.add('open');
+}
+
+function parseImportData() {
+  const raw = document.getElementById('importTextarea').value.trim();
+  if (!raw) { toast('⚠️ Collez des données à importer'); return; }
+  const lines = raw.split('\n').map(l => l.trim()).filter(Boolean);
+  const experts = [];
+  for (const line of lines) {
+    // Support tab-separated: Nom \t Poste \t Organisation \t Téléphone \t Wilaya/Notes
+    const parts = line.split(/\t/);
+    if (parts.length >= 1 && parts[0]) {
+      experts.push({
+        id: uid(),
+        nom:   (parts[0] || '').trim(),
+        poste: (parts[1] || '').trim(),
+        org:   (parts[2] || 'Conseil Scientifique MADR').trim(),
+        cat:   'regional',
+        tel:   (parts[3] || '').trim(),
+        email: (parts[4] || '').trim(),
+        notes: (parts[5] || '').trim(),
+      });
+    }
+  }
+  if (!experts.length) { toast('⚠️ Aucune ligne valide détectée'); return; }
+  document.getElementById('importCount').textContent = `${experts.length} expert(s) détecté(s) — vérifiez l'aperçu`;
+  document.getElementById('importPreview').innerHTML = experts.map(e =>
+    `<div style="padding:8px 10px;border:1px solid var(--border);border-radius:6px;margin-bottom:6px;background:var(--parchment)">
+      <strong style="font-size:13px">${e.nom}</strong><br>
+      <span style="font-size:11px;color:var(--muted)">${e.poste || '—'} · ${e.org} ${e.tel ? '· 📞 '+e.tel : ''}</span>
+    </div>`
+  ).join('');
+  window._importPending = experts;
+}
+
+function confirmImport() {
+  if (!window._importPending || !window._importPending.length) { toast('⚠️ Analysez d\'abord les données'); return; }
+  const dupes = window._importPending.filter(e => db.partenaires.some(p => p.nom === e.nom));
+  const news = window._importPending.filter(e => !db.partenaires.some(p => p.nom === e.nom));
+  db.partenaires.unshift(...news);
+  save('partenaires');
+  closeModal('modalImport');
+  render();
+  toast(`✅ ${news.length} expert(s) importé(s)${dupes.length ? ` · ${dupes.length} doublon(s) ignoré(s)` : ''}`);
+  window._importPending = null;
+}
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2); }
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+// ── TABS ──────────────────────────────────────────────────
+const tabConfig = {
+  partenaires: { title: 'Partenaires Institutionnels', addLabel: '+ Partenaire', modal: 'modalPartner' },
+  dossiers:    { title: 'Dossiers en Cours',           addLabel: '+ Dossier',    modal: 'modalDossier' },
+  reunions:    { title: 'Comptes-Rendus de Réunions',  addLabel: '+ CR Réunion', modal: 'modalReunion' },
+};
+
+function showTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.nav-item').forEach((el,i) => {
+    el.classList.toggle('active', ['partenaires','dossiers','reunions'][i] === tab);
+  });
+  document.getElementById('pageTitle').textContent = tabConfig[tab].title;
+  document.getElementById('addBtn').textContent = tabConfig[tab].addLabel;
+  document.getElementById('searchInput').value = '';
+  render();
+}
+
+function updateCounts() {
+  ['partenaires','dossiers','reunions'].forEach(k => {
+    document.getElementById('cnt-' + k).textContent = db[k].length;
+  });
+}
+
+// ── SEARCH ────────────────────────────────────────────────
+function doSearch() { render(); }
+
+function filtered() {
+  const q = document.getElementById('searchInput').value.toLowerCase().trim();
+  if (!q) return db[currentTab];
+  return db[currentTab].filter(item =>
+    JSON.stringify(item).toLowerCase().includes(q)
+  );
+}
+
+// ── RENDER ────────────────────────────────────────────────
+function render() {
+  updateCounts();
+  renderStats();
+  const grid = document.getElementById('cardsGrid');
+  const items = filtered();
+  if (!items.length) {
+    grid.innerHTML = `<div class="empty-state"><div class="icon">📂</div><p>Aucun élément pour l'instant.<br>Cliquez sur "+ Ajouter" pour commencer.</p></div>`;
+    return;
+  }
+  if (currentTab === 'partenaires') grid.innerHTML = items.map(renderPartner).join('');
+  if (currentTab === 'dossiers')    grid.innerHTML = items.map(renderDossier).join('');
+  if (currentTab === 'reunions')    grid.innerHTML = items.map(renderReunion).join('');
+}
+
+function renderStats() {
+  const row = document.getElementById('statsRow');
+  if (currentTab === 'partenaires') {
+    const cats = ['ministere','international','regional','entreprise','chambre'];
+    const counts = cats.map(c => db.partenaires.filter(p => p.cat === c).length);
+    row.innerHTML = `
+      <div class="stat-card"><div class="stat-icon blue">🏛️</div><div><div class="stat-num">${counts[0]}</div><div class="stat-lbl">Ministères</div></div></div>
+      <div class="stat-card"><div class="stat-icon gold">🌍</div><div><div class="stat-num">${counts[1]}</div><div class="stat-lbl">International</div></div></div>
+      <div class="stat-card"><div class="stat-icon green">🌿</div><div><div class="stat-num">${counts[2]}</div><div class="stat-lbl">Régional</div></div></div>
+      <div class="stat-card"><div class="stat-icon red">🏢</div><div><div class="stat-num">${counts[3]}</div><div class="stat-lbl">Privé</div></div></div>
+      <div class="stat-card" style="grid-column:1/-1;background:rgba(0,128,128,0.05);border-color:rgba(0,128,128,0.2)"><div class="stat-icon" style="background:rgba(0,128,128,0.12)">🏡</div><div><div class="stat-num" style="color:#006666">${counts[4]}</div><div class="stat-lbl">Chambres Agriculture Wilaya (Présidents & SG)</div></div></div>
+    `;
+  } else if (currentTab === 'dossiers') {
+    const total = db.dossiers.length;
+    const urgent = db.dossiers.filter(d => d.statut === 'urgent').length;
+    const enc = db.dossiers.filter(d => d.statut === 'en-cours').length;
+    const clos = db.dossiers.filter(d => d.statut === 'clos').length;
+    row.innerHTML = `
+      <div class="stat-card"><div class="stat-icon green">📁</div><div><div class="stat-num">${total}</div><div class="stat-lbl">Total dossiers</div></div></div>
+      <div class="stat-card"><div class="stat-icon red">🔴</div><div><div class="stat-num">${urgent}</div><div class="stat-lbl">Urgents</div></div></div>
+      <div class="stat-card"><div class="stat-icon gold">⏳</div><div><div class="stat-num">${enc}</div><div class="stat-lbl">En cours</div></div></div>
+      <div class="stat-card"><div class="stat-icon blue">✅</div><div><div class="stat-num">${clos}</div><div class="stat-lbl">Clos</div></div></div>
+    `;
+  } else {
+    const total = db.reunions.length;
+    const thisMonth = db.reunions.filter(r => r.date && r.date.startsWith(new Date().toISOString().slice(0,7))).length;
+    const allDecisions = db.reunions.reduce((a,r) => a + (r.decisions ? r.decisions.split('\n').filter(Boolean).length : 0), 0);
+    row.innerHTML = `
+      <div class="stat-card"><div class="stat-icon green">📝</div><div><div class="stat-num">${total}</div><div class="stat-lbl">Total CR</div></div></div>
+      <div class="stat-card"><div class="stat-icon gold">📅</div><div><div class="stat-num">${thisMonth}</div><div class="stat-lbl">Ce mois</div></div></div>
+      <div class="stat-card"><div class="stat-icon blue">✅</div><div><div class="stat-num">${allDecisions}</div><div class="stat-lbl">Décisions</div></div></div>
+      <div class="stat-card"><div class="stat-icon red">👥</div><div><div class="stat-num">${db.partenaires.length}</div><div class="stat-lbl">Partenaires</div></div></div>
+    `;
+  }
+}
+
+function initials(name) {
+  return name.split(' ').map(w=>w[0]||'').slice(0,2).join('').toUpperCase() || '?';
+}
+
+function renderPartner(p) {
+  const badgeClass = p.cat || 'ministere';
+  const badgeLabels = { ministere:'Ministère', international:'International', regional:'Régional', entreprise:'Entreprise', chambre:'CAW' };
+  return `<div class="partner-card">
+    <div class="card-top">
+      <div class="card-avatar">${initials(p.nom)}</div>
+      <div>
+        <div class="card-name">${p.nom}</div>
+        <div class="card-org">${p.poste || ''} ${p.org ? '— ' + p.org : ''}</div>
+      </div>
+      <span class="badge ${badgeClass}">${badgeLabels[badgeClass]||badgeClass}</span>
+    </div>
+    ${p.tel ? `<div class="card-detail">📞 <span>${p.tel}</span></div>` : ''}
+    ${p.email ? `<div class="card-detail">✉️ <span>${p.email}</span></div>` : ''}
+    ${p.notes ? `<div class="card-detail" style="margin-top:8px;font-size:12px;color:var(--muted);line-height:1.5">${p.notes.slice(0,90)}${p.notes.length>90?'…':''}</div>` : ''}
+    <div class="card-actions">
+      <button class="btn-sm" onclick="editPartner('${p.id}')">✏️ Modifier</button>
+      <button class="btn-sm danger" onclick="deleteItem('partenaires','${p.id}')">🗑️ Supprimer</button>
+    </div>
+  </div>`;
+}
+
+function renderDossier(d) {
+  const statusLabels = { 'en-cours':'En cours','urgent':'Urgent','suivi':'En suivi','clos':'Clos' };
+  const prog = Math.min(100, parseInt(d.progress) || 0);
+  const echeance = d.echeance ? new Date(d.echeance).toLocaleDateString('fr-FR',{day:'numeric',month:'short',year:'numeric'}) : '';
+  return `<div class="dossier-card">
+    <div style="display:flex;gap:10px;align-items:flex-start;">
+      <div class="status-dot ${d.statut||'en-cours'}" style="margin-top:6px"></div>
+      <div style="flex:1">
+        <div style="font-weight:600;font-size:14px;color:var(--forest);margin-bottom:4px">${d.titre}</div>
+        <span class="badge ${d.statut==='urgent'?'entreprise':d.statut==='clos'?'':d.statut==='suivi'?'ministere':'regional'}" style="margin:0">${statusLabels[d.statut]||d.statut}</span>
+      </div>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" style="width:${prog}%"></div></div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:8px">${prog}% complété</div>
+    ${d.desc ? `<div style="font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:8px">${d.desc.slice(0,100)}${d.desc.length>100?'…':''}</div>` : ''}
+    ${d.action ? `<div style="font-size:12px;background:rgba(196,154,42,0.1);border-left:2px solid var(--gold);padding:6px 10px;border-radius:0 5px 5px 0;color:var(--ink);">▸ ${d.action}</div>` : ''}
+    ${echeance ? `<div class="card-detail" style="margin-top:8px">📅 <span>${echeance}</span></div>` : ''}
+    ${d.resp ? `<div class="card-detail">👤 <span>${d.resp}</span></div>` : ''}
+    <div class="card-actions">
+      <button class="btn-sm" onclick="editDossier('${d.id}')">✏️ Modifier</button>
+      <button class="btn-sm danger" onclick="deleteItem('dossiers','${d.id}')">🗑️</button>
+    </div>
+  </div>`;
+}
+
+function renderReunion(r) {
+  const dateStr = r.date ? new Date(r.date).toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'}) : 'Date non définie';
+  const decisions = (r.decisions || '').split('\n').filter(Boolean);
+  return `<div class="reunion-card">
+    <div class="reunion-date-bar">
+      <div class="reunion-date">📅 ${dateStr}</div>
+      ${r.lieu ? `<div style="font-size:11px;color:rgba(255,255,255,0.5)">${r.lieu}</div>` : ''}
+    </div>
+    <div class="reunion-body">
+      <div class="reunion-title">${r.titre}</div>
+      ${r.participants ? `<div class="card-detail" style="margin-bottom:8px">👥 <span style="font-size:11px">${r.participants}</span></div>` : ''}
+      ${r.resume ? `<div class="reunion-excerpt">${r.resume.slice(0,120)}${r.resume.length>120?'…':''}</div>` : ''}
+      ${decisions.length ? `<div style="margin-top:10px">${decisions.slice(0,2).map(d=>`<span class="decision-pill">✅ ${d}</span>`).join('')}${decisions.length>2?`<span style="font-size:11px;color:var(--muted)"> +${decisions.length-2} autres</span>`:''}</div>` : ''}
+      ${r.actions ? `<div style="font-size:12px;background:rgba(36,113,163,0.06);border-left:2px solid var(--blue);padding:6px 10px;border-radius:0 5px 5px 0;margin-top:8px;color:var(--ink);">📌 ${r.actions.slice(0,80)}${r.actions.length>80?'…':''}</div>` : ''}
+      <div class="card-actions" style="margin-top:12px">
+        <button class="btn-sm" onclick="editReunion('${r.id}')">✏️ Modifier</button>
+        <button class="btn-sm danger" onclick="deleteItem('reunions','${r.id}')">🗑️</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ── MODAL ──────────────────────────────────────────────────
+function openModal() {
+  editId = null;
+  if (currentTab === 'partenaires') {
+    document.getElementById('partnerModalTitle').textContent = 'Nouveau Partenaire';
+    ['pEditId','pNom','pPoste','pOrg','pTel','pEmail','pNotes'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el.tagName === 'SELECT') el.selectedIndex = 0; else el.value = '';
+    });
+    document.getElementById('modalPartner').classList.add('open');
+  } else if (currentTab === 'dossiers') {
+    document.getElementById('dossierModalTitle').textContent = 'Nouveau Dossier';
+    ['dEditId','dTitre','dResp','dDesc','dAction','dEcheance'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('dProgress').value = '0';
+    document.getElementById('dStatut').selectedIndex = 0;
+    document.getElementById('modalDossier').classList.add('open');
+  } else {
+    document.getElementById('reunionModalTitle').textContent = 'Nouveau Compte-rendu';
+    ['rEditId','rTitre','rLieu','rParticipants','rResume','rDecisions','rActions'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('rDate').value = new Date().toISOString().split('T')[0];
+    document.getElementById('modalReunion').classList.add('open');
+  }
+}
+
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+// ── CRUD ──────────────────────────────────────────────────
+function savePartner() {
+  const nom = document.getElementById('pNom').value.trim();
+  const org = document.getElementById('pOrg').value.trim();
+  if (!nom) { toast('⚠️ Le nom est requis'); return; }
+  const id = document.getElementById('pEditId').value || uid();
+  const item = { id, nom, poste: document.getElementById('pPoste').value, org, cat: document.getElementById('pCat').value, tel: document.getElementById('pTel').value, email: document.getElementById('pEmail').value, notes: document.getElementById('pNotes').value };
+  const idx = db.partenaires.findIndex(p => p.id === id);
+  if (idx >= 0) db.partenaires[idx] = item; else db.partenaires.unshift(item);
+  save('partenaires');
+  closeModal('modalPartner'); render();
+  toast(idx >= 0 ? '✅ Partenaire mis à jour' : '✅ Partenaire ajouté');
+}
+
+function editPartner(id) {
+  const p = db.partenaires.find(x => x.id === id); if (!p) return;
+  document.getElementById('partnerModalTitle').textContent = 'Modifier Partenaire';
+  document.getElementById('pEditId').value = p.id;
+  document.getElementById('pNom').value = p.nom;
+  document.getElementById('pPoste').value = p.poste || '';
+  document.getElementById('pOrg').value = p.org || '';
+  document.getElementById('pCat').value = p.cat || 'ministere';
+  document.getElementById('pTel').value = p.tel || '';
+  document.getElementById('pEmail').value = p.email || '';
+  document.getElementById('pNotes').value = p.notes || '';
+  document.getElementById('modalPartner').classList.add('open');
+}
+
+function saveDossier() {
+  const titre = document.getElementById('dTitre').value.trim();
+  if (!titre) { toast('⚠️ Le titre est requis'); return; }
+  const id = document.getElementById('dEditId').value || uid();
+  const item = { id, titre, statut: document.getElementById('dStatut').value, progress: document.getElementById('dProgress').value, resp: document.getElementById('dResp').value, echeance: document.getElementById('dEcheance').value, desc: document.getElementById('dDesc').value, action: document.getElementById('dAction').value };
+  const idx = db.dossiers.findIndex(d => d.id === id);
+  if (idx >= 0) db.dossiers[idx] = item; else db.dossiers.unshift(item);
+  save('dossiers');
+  closeModal('modalDossier'); render();
+  toast(idx >= 0 ? '✅ Dossier mis à jour' : '✅ Dossier ajouté');
+}
+
+function editDossier(id) {
+  const d = db.dossiers.find(x => x.id === id); if (!d) return;
+  document.getElementById('dossierModalTitle').textContent = 'Modifier Dossier';
+  document.getElementById('dEditId').value = d.id;
+  document.getElementById('dTitre').value = d.titre;
+  document.getElementById('dStatut').value = d.statut;
+  document.getElementById('dProgress').value = d.progress || 0;
+  document.getElementById('dResp').value = d.resp || '';
+  document.getElementById('dEcheance').value = d.echeance || '';
+  document.getElementById('dDesc').value = d.desc || '';
+  document.getElementById('dAction').value = d.action || '';
+  document.getElementById('modalDossier').classList.add('open');
+}
+
+function saveReunion() {
+  const titre = document.getElementById('rTitre').value.trim();
+  if (!titre) { toast('⚠️ Le titre est requis'); return; }
+  const id = document.getElementById('rEditId').value || uid();
+  const item = { id, titre, date: document.getElementById('rDate').value, lieu: document.getElementById('rLieu').value, participants: document.getElementById('rParticipants').value, resume: document.getElementById('rResume').value, decisions: document.getElementById('rDecisions').value, actions: document.getElementById('rActions').value };
+  const idx = db.reunions.findIndex(r => r.id === id);
+  if (idx >= 0) db.reunions[idx] = item; else db.reunions.unshift(item);
+  save('reunions');
+  closeModal('modalReunion'); render();
+  toast(idx >= 0 ? '✅ CR mis à jour' : '✅ Compte-rendu ajouté');
+}
+
+function editReunion(id) {
+  const r = db.reunions.find(x => x.id === id); if (!r) return;
+  document.getElementById('reunionModalTitle').textContent = 'Modifier Compte-rendu';
+  document.getElementById('rEditId').value = r.id;
+  document.getElementById('rTitre').value = r.titre;
+  document.getElementById('rDate').value = r.date || '';
+  document.getElementById('rLieu').value = r.lieu || '';
+  document.getElementById('rParticipants').value = r.participants || '';
+  document.getElementById('rResume').value = r.resume || '';
+  document.getElementById('rDecisions').value = r.decisions || '';
+  document.getElementById('rActions').value = r.actions || '';
+  document.getElementById('modalReunion').classList.add('open');
+}
+
+function deleteItem(key, id) {
+  if (!confirm('Supprimer cet élément définitivement ?')) return;
+  db[key] = db[key].filter(x => x.id !== id);
+  save(key); render();
+  toast('🗑️ Supprimé');
+}
+
+// Close modal on overlay click
+document.querySelectorAll('.modal-overlay').forEach(el => {
+  el.addEventListener('click', e => { if (e.target === el) el.classList.remove('open'); });
+});
+
+// ── INIT ──────────────────────────────────────────────────
+render();
+</script>
+</body>
+</html>
